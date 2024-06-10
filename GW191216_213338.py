@@ -6,13 +6,14 @@ import jax.numpy as jnp
 from jimgw.jim import Jim
 from jimgw.prior import Composite, Unconstrained_Uniform, Sphere
 from jimgw.single_event.detector import H1, L1, V1
-from jimgw.single_event.likelihood import TransientLikelihoodFD
+from jimgw.single_event.likelihood import TransientLikelihoodFD, HeterodynedTransientLikelihoodFD
 from jimgw.single_event.waveform import RippleIMRPhenomPv2
 from flowMC.strategy.optimization import optimization_Adam
 
 from gwosc.datasets import find_datasets, event_gps
 from gwosc import datasets
 from tap import Tap
+import argparse
 
 from run_analysis import plotPosterior, savePosterior, plotRunAnalysis, plotLikelihood, mkdir
 
@@ -21,23 +22,24 @@ jax.config.update("jax_enable_x64", True)
 
 #################### Parameters to Tune for each Events ####################
 """
-gps: 
-duration:
-post_trigger_duration:
-Mc_prior:
-ifos:
+event: name of the event
+gps: trigger time of the event
+duration: duration of the segment for analysis
+post_trigger_duration: duration after the trigger time
+Mc_prior: prior for chirp mass, [min, max]
+ifos: list of interferometers to use
 """
 
-class ArgumentParser(Tap):
-    output_dir: str = 'output'
-    gps: float = 1260567236.4
-    duration: float = 4
-    post_trigger_duration: float = 2
-    Mc_prior: list = [3.0, 30.0]
-    ifos: list = ["H1", "V1"]
+parser = argparse.ArgumentParser()
 
-args = ArgumentParser().parse_args()
-
+parser.add_argument('--output_dir', type=str, default="output", help='Your name')
+parser.add_argument('--event', type=str, default="GW191216_213338", help='Your name')
+parser.add_argument('--gps', type=float, default=1260567236.4, help='Your name')
+parser.add_argument('--duration', type=float, default=4, help='Your name')
+parser.add_argument('--post_trigger_duration', type=float, default=2, help='Your name')
+parser.add_argument('--Mc_prior', type=float, nargs='+', help='Mc_prior', default=[3.0, 30.0])
+parser.add_argument('--ifos', type=str, nargs='+', help='ifos', default=["H1", "V1"])
+args = parser.parse_args()
 
 
 #################### Fetching the Data ####################
@@ -46,17 +48,27 @@ total_time_start = time.time()
 # first, fetch a 4s segment centered on GW150914
 gps = args.gps
 duration = args.duration
-post_trigger_duration = args.post_trigger_duration
+post_trigger_duration = duration // 2
 start_pad = duration - post_trigger_duration
 end_pad = post_trigger_duration
 fmin = 20.0
 fmax = 1024.0
 
 ifos = args.ifos
+detectors = []
 
-H1.load_data(gps, start_pad, end_pad, fmin, fmax, psd_pad=duration*4, tukey_alpha=0.2)
-V1.load_data(gps, start_pad, end_pad, fmin, fmax, psd_pad=duration*4, tukey_alpha=0.2)
+if "H1" in ifos:
+    H1.load_data(gps, start_pad, end_pad, fmin, fmax, psd_pad=duration*4, tukey_alpha=0.2)
+    detectors.append(H1)
 
+if "L1" in ifos:
+    L1.load_data(gps, start_pad, end_pad, fmin, fmax, psd_pad=duration*4, tukey_alpha=0.2)
+    detectors.append(L1)
+    
+if "V1" in ifos:    
+    V1.load_data(gps, start_pad, end_pad, fmin, fmax, psd_pad=duration*4, tukey_alpha=0.2)
+    detectors.append(V1)
+    
 waveform = RippleIMRPhenomPv2(f_ref=20)
 
 ###########################################
@@ -141,10 +153,8 @@ bounds = jnp.array(
     ]
 ) + jnp.array([[epsilon, -epsilon]])
 
-likelihood = TransientLikelihoodFD(
-    [H1, V1], waveform=waveform, trigger_time=gps, duration=args.duration, post_trigger_duration=args.post_trigger_duration
-)
-# likelihood = HeterodynedTransientLikelihoodFD([H1, L1], prior=prior, bounds=bounds, waveform=waveform, trigger_time=gps, duration=4, post_trigger_duration=2)
+
+likelihood = TransientLikelihoodFD(detectors, waveform=waveform, trigger_time=gps, duration=args.duration, post_trigger_duration=args.post_trigger_duration)
 
 
 mass_matrix = jnp.eye(prior.n_dim)
@@ -155,7 +165,7 @@ local_sampler_arg = {"step_size": mass_matrix * 1e-3}
 Adam_optimizer = optimization_Adam(n_steps=3000, learning_rate=0.01, noise_level=1, bounds=bounds)
 
 import optax
-n_epochs = 20
+n_epochs = 40
 n_loop_training = 100
 total_epochs = n_epochs * n_loop_training
 start = total_epochs//10
@@ -193,6 +203,9 @@ jim.sample(jax.random.PRNGKey(42))
 #################### Output ####################
 result = jim.get_samples()
 summary = jim.Sampler.get_sampler_state(training=True)
+
+event = args.event
+
 mkdir(args.output_dir)
 plotPosterior(result, event)
 savePosterior(result, event)
