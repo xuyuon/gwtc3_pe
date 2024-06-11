@@ -18,31 +18,10 @@ import argparse
 from run_analysis import plotPosterior, savePosterior, plotRunAnalysis, plotLikelihood, mkdir
 
 
-jax.config.update("jax_enable_x64", True)
 
-#################### Parameters to Tune for each Events ####################
-"""
-event: name of the event
-gps: trigger time of the event
-duration: duration of the segment for analysis
-post_trigger_duration: duration after the trigger time
-Mc_prior: prior for chirp mass, [min, max]
-ifos: list of interferometers to use
-"""
-
-parser = argparse.ArgumentParser()
-
-parser.add_argument('--output_dir', type=str, default="output", help='Your name')
-parser.add_argument('--event', type=str, default="GW191216_213338", help='Your name')
-parser.add_argument('--gps', type=float, default=1260567236.4, help='Your name')
-parser.add_argument('--duration', type=float, default=4, help='Your name')
-parser.add_argument('--post_trigger_duration', type=float, default=2, help='Your name')
-parser.add_argument('--Mc_prior', type=float, nargs='+', help='Mc_prior', default=[3.0, 30.0])
-parser.add_argument('--ifos', type=str, nargs='+', help='ifos', default=["H1", "V1"])
-args = parser.parse_args()
-
-
-def runSingleEventPE(output_dir, event, gps, duration, post_trigger_duration, Mc_prior, ifos):
+def runSingleEventPE(output_dir, event, gps, duration, post_trigger_duration, Mc_prior, ifos, waveform, heterodyned):
+    jax.config.update("jax_enable_x64", True)
+    
     #################### Fetching the Data ####################
     total_time_start = time.time()
 
@@ -154,8 +133,10 @@ def runSingleEventPE(output_dir, event, gps, duration, post_trigger_duration, Mc
         ]
     ) + jnp.array([[epsilon, -epsilon]])
 
-
-    likelihood = TransientLikelihoodFD(detectors, waveform=waveform, trigger_time=gps, duration=duration, post_trigger_duration=post_trigger_duration)
+    if heterodyned:
+        likelihood = HeterodynedTransientLikelihoodFD(detectors, prior=prior, bounds=bounds, waveform=waveform, trigger_time=gps, duration=duration, post_trigger_duration=post_trigger_duration,n_bins=1000)
+    else:
+        likelihood = TransientLikelihoodFD(detectors, waveform=waveform, trigger_time=gps, duration=duration, post_trigger_duration=post_trigger_duration)
 
 
     mass_matrix = jnp.eye(prior.n_dim)
@@ -213,4 +194,40 @@ def runSingleEventPE(output_dir, event, gps, duration, post_trigger_duration, Mc
 
 
 if __name__ == "__main__":
-    runSingleEventPE(args.output_dir, args.event, args.gps, args.duration, args.post_trigger_duration, args.Mc_prior, args.ifos)
+    #################### Parameters to Tune for each Events ####################
+    """
+    event: name of the event
+    gps: trigger time of the event
+    duration: duration of the segment for analysis
+    post_trigger_duration: duration after the trigger time
+    Mc_prior: prior for chirp mass, [min, max]
+    ifos: list of interferometers to use
+    waveform: waveform model to use
+    heterodyned: whether to use heterodyned likelihood
+    """
+
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument('--output_dir', type=str, default="output", help='Your name')
+    parser.add_argument('--event', type=str, default="GW191216_213338", help='Your name')
+    parser.add_argument('--gps', type=float, default=1260567236.4, help='Your name')
+    parser.add_argument('--duration', type=float, default=4, help='Your name')
+    parser.add_argument('--post_trigger_duration', type=float, default=2, help='Your name')
+    parser.add_argument('--Mc_prior', type=float, nargs='+', help='Mc_prior', default=[3.0, 30.0])
+    parser.add_argument('--ifos', type=str, nargs='+', help='ifos', default=["H1", "V1"])
+    parser.add_argument('--waveform', type=str, default="RippleIMRPhenomPv2", help='Your name')
+    parser.add_argument('--heterodyned', type=bool, default=False, help='Your name')
+    args = parser.parse_args()
+    
+    
+    runSingleEventPE(
+        output_dir=args.output_dir,
+        event=args.event, 
+        gps=args.gps, 
+        duration=args.duration, 
+        post_trigger_duration=args.post_trigger_duration, 
+        Mc_prior=args.Mc_prior, 
+        ifos=args.ifos,
+        waveform=args.waveform,
+        heterodyned=args.heterodyned
+        )
