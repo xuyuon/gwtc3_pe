@@ -149,5 +149,3 @@ def compare_plot(event_name):
     plt.savefig("compare_plot/"+event_name+".jpeg")
     
 
-def sampling(arr):
-    return np.random.choice(arr, size=5000, replace=False)
