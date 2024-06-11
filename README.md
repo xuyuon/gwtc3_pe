@@ -1,5 +1,5 @@
 To run a single event: <br />
-`sbatch run_single_event.sh`
+`sbatch run.sh`
 <br />
 
 To run the programme: <br />
