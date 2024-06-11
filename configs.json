@@ -1,0 +1,70 @@
+{
+    "configs": {
+        "GW191103_012549":{
+            "event": "GW191103_012549",
+            "gps": 1256779567.534634,
+            "duration": 16,
+            "Mc_prior": {"min": 5.0, "max": 12.0},
+            "ifos": ["H1", "L1"],
+            "heterodyned": false
+        },
+        "GW191105_143521":{
+            "event": "GW191105_143521",
+            "gps": 1256999739.929688,
+            "duration": 16,
+            "Mc_prior": {"min": 6.0, "max": 14.0},
+            "ifos": ["H1", "L1", "V1"],
+            "heterodyned": false
+        },
+        "GW191109_010717":{
+            "event": "GW191109_010717",
+            "gps": 1257296855.216458,
+            "duration": 4,
+            "Mc_prior": {"min": 16.0, "max": 97.0},
+            "ifos": ["H1", "L1"],
+            "heterodyned": false
+        },
+        "GW191127_050227":{
+            "event": "GW191127_050227",
+            "gps": 1258866165.550021,
+            "duration": 8,
+            "Mc_prior": {"min": 13.0, "max": 114.0},
+            "ifos": ["H1", "L1", "V1"],
+            "heterodyned": false
+        },
+        "GW191129_134029":{
+            "event": "GW191129_134029",
+            "gps": 1259070047.197432,
+            "duration": 16,
+            "Mc_prior": {"min": 6.0, "max": 11.0},
+            "ifos": ["H1", "L1"],
+            "heterodyned": false
+        },
+        "GW191204_171526":{
+            "event": "GW191204_171526",
+            "gps": 1259514944.091841,
+            "duration": 8,
+            "Mc_prior": {"min": 9.5, "max": 9.9},
+            "ifos": ["H1", "L1"],
+            "heterodyned": false
+        },
+        "GW191215_223052":{
+            "event": "GW191215_223052",
+            "gps": 1260484270.33442,
+            "duration": 8,
+            "Mc_prior": {"min": 16.0, "max": 35.0},
+            "ifos": ["H1", "L1", "V1"],
+            "heterodyned": false
+        },
+        "GW191216_213338":{
+            "event": "GW191216_213338",
+            "gps": 1260567236.4,
+            "duration": 4,
+            "Mc_prior": {"min": 3.0, "max": 30.0},
+            "ifos": ["H1", "L1"],
+            "heterodyned": false
+        }
+    
+    }
+    
+}
