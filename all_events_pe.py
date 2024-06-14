@@ -16,15 +16,14 @@ for event in gwtc3:
     try:
         event_name = event
         event_config = configs[event_name]
-        
         runSingleEventPE(
             output_dir=output_dir,
             event=event_name,
             gps=event_config['gps'],
-            duration=event_config['duration'],
+            duration=float(event_config['duration']),
             post_trigger_duration=2,
             Mc_prior=[event_config['Mc_prior']['min'], event_config['Mc_prior']['max']],
-            ifos=event_config['ifos'],
+            ifos=event_config['detectors'],
             waveform="RippleIMRPhenomPv2",
             heterodyned=True
             )
