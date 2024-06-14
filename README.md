@@ -2,6 +2,10 @@ To run a single event: <br />
 `sbatch run.sh`
 <br />
 
+To generate a configuration file: <br />
+`python gen_config.py`
+<br />
+
 To run all events in gwtc3: <br />
 `sbatch run_all.sh`
 <br />
