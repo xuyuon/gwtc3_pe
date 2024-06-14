@@ -14,7 +14,7 @@ configs = json.load(file)['configs']
 
 for event in gwtc3:
     try:
-        event_name = event[:15]
+        event_name = event
         event_config = configs[event_name]
         
         runSingleEventPE(
@@ -26,7 +26,7 @@ for event in gwtc3:
             Mc_prior=[event_config['Mc_prior']['min'], event_config['Mc_prior']['max']],
             ifos=event_config['ifos'],
             waveform="RippleIMRPhenomPv2",
-            heterodyned=event_config['heterodyned']
+            heterodyned=True
             )
     except Exception as e: print(e)
 
