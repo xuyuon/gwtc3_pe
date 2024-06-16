@@ -16,9 +16,9 @@ To run the programme: <br />
 
 ##Milestone
 * single event parameter estimation
-- [ ] Using same prior as bilby (i.e. Uniform component mass on chirp mass)
-- [x] Getting reasonable posterior for high SNR events
+- [ ] Using same prior as BILBY (i.e. Uniform component mass on chirp mass)
+- [x] Getting posterior comparable to BILBY for high SNR events
 
 * GWTC-3 events parameter estimation
 - [x] Run parameter estimation automatically on multiple events
-- [ ] Run parameter estimation using 
+- [ ] Getting posterior comparable to BILBY for high SNR events
