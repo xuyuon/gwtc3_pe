@@ -105,47 +105,107 @@ def mkdir(path):
 'chi_eff_infinity_only_prec_avg', 'chi_p_infinity_only_prec_avg', 'cos_tilt_1_infinity_only_prec_avg', 
 'cos_tilt_2_infinity_only_prec_avg']
 """
-
-def compare_plot(event_name):
-    bilby_posterior_dir = "data/IGWN-GWTC3p0-v1-" + event_name + "_PEDataRelease_mixed_cosmo.h5"
-    jim_posterior_dir = "output/posterior_samples/" + event_name + ".h5"
-
-    
+def compare_plot(event_name, params, output_dir="compare_plot"):
+    """
+    params: A list of params to be included in the plot
+    """
+    bilby_posterior_dir = "data/IGWN-GWTC3p0-v1-" + event_name[:-3] + "_PEDataRelease_mixed_cosmo.h5"
+    jim_posterior_dir = "output/posterior_samples/" + event_name + ".h5"    
 
     file = h5py.File(jim_posterior_dir, 'r')
     jim_posterior = np.array(file['posterior'])
-    sample_point_filter = np.random.choice(jim_posterior.shape[0], size=5000, replace=True)
-    
-    jim_posterior = np.array([jim_posterior[:,0], jim_posterior[:,1], jim_posterior[:,2], jim_posterior[:,3], jim_posterior[:,4], jim_posterior[:,5], jim_posterior[:,6], jim_posterior[:,7]]).T
-    jim_posterior = jim_posterior[sample_point_filter]
     file.close()
-
+    
     file = h5py.File(bilby_posterior_dir, 'r')
-    eta= np.array(file['C01:Mixed']['posterior_samples']['symmetric_mass_ratio'])
-    sample_point_filter = np.random.choice(eta.shape[0], size=5000, replace=True)
-    spin_1x = np.array(file['C01:Mixed']['posterior_samples']['spin_1x'])
-    spin_1y = np.array(file['C01:Mixed']['posterior_samples']['spin_1y'])
-    spin_1z = np.array(file['C01:Mixed']['posterior_samples']['spin_1z'])
-    spin_2x = np.array(file['C01:Mixed']['posterior_samples']['spin_2x'])
-    spin_2y = np.array(file['C01:Mixed']['posterior_samples']['spin_2y'])
-    spin_2z = np.array(file['C01:Mixed']['posterior_samples']['spin_2z'])
+    
+    jim_params = []
+    bilby_params = []
+    if "chirp_mass" in params:
+        jim_params.append(jim_posterior[:,0])
+        bilby_params.append(np.array(file['C01:Mixed']['posterior_samples']['chirp_mass']))
+    
+    if "eta" in params:
+        jim_params.append(jim_posterior[:,1])
+        bilby_params.append(np.array(file['C01:Mixed']['posterior_samples']['symmetric_mass_ratio']))
+    
+    if "spin1x" in params:
+        jim_params.append(jim_posterior[:,2])
+        bilby_params.append(np.array(file['C01:Mixed']['posterior_samples']['spin_1x']))
+    
+    if "spin1y" in params:
+        jim_params.append(jim_posterior[:,3])
+        bilby_params.append(np.array(file['C01:Mixed']['posterior_samples']['spin_1y']))
+    
+    if "spin1z" in params:
+        jim_params.append(jim_posterior[:,4])
+        bilby_params.append(np.array(file['C01:Mixed']['posterior_samples']['spin_1z']))
+    
+    if "spin2x" in params:
+        jim_params.append(jim_posterior[:,5])
+        bilby_params.append(np.array(file['C01:Mixed']['posterior_samples']['spin_2x']))
+    
+    if "spin2y" in params:
+        jim_params.append(jim_posterior[:,6])
+        bilby_params.append(np.array(file['C01:Mixed']['posterior_samples']['spin_2y']))
+    
+    if "spin2z" in params:
+        jim_params.append(jim_posterior[:,7])
+        bilby_params.append(np.array(file['C01:Mixed']['posterior_samples']['spin_2z']))
+    
+    if "luminosity_distance" in params:
+        jim_params.append(jim_posterior[:,8])
+        bilby_params.append(np.array(file['C01:Mixed']['posterior_samples']['luminosity_distance']))
+        
+    if "phase" in params:
+        jim_params.append(jim_posterior[:,10])
+        bilby_params.append(np.array(file['C01:Mixed']['posterior_samples']['phase']))
+        
+    if "iota" in params:
+        jim_params.append(jim_posterior[:,11])
+        bilby_params.append(np.array(file['C01:Mixed']['posterior_samples']['iota']))
+    
+    if "psi" in params:
+        jim_params.append(jim_posterior[:,12])
+        bilby_params.append(np.array(file['C01:Mixed']['posterior_samples']['psi']))
+    
+    if "ra" in params:
+        jim_params.append(jim_posterior[:,13])
+        bilby_params.append(np.array(file['C01:Mixed']['posterior_samples']['ra']))
+        
+    if "dec" in params:
+        jim_params.append(jim_posterior[:,14])
+        bilby_params.append(np.array(file['C01:Mixed']['posterior_samples']['dec']))
+    
+    file.close()
+        
+    jim_params = np.array(jim_params).T
+    sample_point_filter = np.random.choice(jim_params.shape[0], size=5000, replace=True)
+    jim_params = jim_params[sample_point_filter]
+
+    bilby_params = np.array(bilby_params).T
+    sample_point_filter = np.random.choice(bilby_params.shape[0], size=5000, replace=True)
+    bilby_params = bilby_params[sample_point_filter]
     # spin_1_theta = np.arccos(spin_1z)
     # spin_2_theta = np.arccos(spin_2z)
     # spin_1_phi = np.arctan2(spin_1y, spin_1x)
     # spin_2_phi = np.arctan2(spin_2y, spin_2x)
     # spin_1_r = np.sqrt(spin_1x**2 + spin_1y**2 + spin_1z**2)
     # spin_2_r = np.sqrt(spin_2x**2 + spin_2y**2 + spin_2z**2)
-    bilby_posterior = np.array([np.array(file['C01:Mixed']['posterior_samples']['chirp_mass']), eta, spin_1x, spin_1y, spin_1z, spin_2x, spin_2y, spin_2z])
-    bilby_posterior = bilby_posterior.T
-    bilby_posterior = bilby_posterior[sample_point_filter]
-    file.close()
 
-    labels = ["M_c", "eta", "spin1x", "spin1y", "spin1z", "spin2x", "spin2y", "spin2z"]
-        
 
-    fig = corner.corner(jim_posterior, labels=labels, plot_datapoints=False, title_quantiles=[0.16, 0.5, 0.84], show_titles=True, title_fmt='g', use_math_text=True, color = 'red')
-    corner.corner(bilby_posterior, labels=labels, plot_datapoints=False, title_quantiles=[0.16, 0.5, 0.84], show_titles=True, title_fmt='g', use_math_text=True, color = 'blue', fig=fig)
+    labels = params
 
-    plt.savefig("compare_plot/"+event_name+".jpeg")
+    fig = corner.corner(jim_params, labels=labels, plot_datapoints=False, title_quantiles=[0.16, 0.5, 0.84], show_titles=True, title_fmt='g', use_math_text=True, color = 'red')
+    corner.corner(bilby_params, labels=labels, plot_datapoints=False, title_quantiles=[0.16, 0.5, 0.84], show_titles=True, title_fmt='g', use_math_text=True, color = 'blue', fig=fig)
+
+    plt.savefig(output_dir+"/"+event_name+".jpeg")
     
+    
+
+def compare_intrinsic_params(event_name, output_dir="compare_plot"):
+    compare_plot(event_name, ["chirp_mass", "eta", "spin1x", "spin1y", "spin1z", "spin2x", "spin2y", "spin2z"], output_dir)
+  
+
+def compare_extrinsic_params(event_name, output_dir="compare_plot"):
+    compare_plot(event_name, ["luminosity_distance", "phase", "iota", "psi", "ra", "dec"], output_dir)
 
