@@ -8,6 +8,8 @@ import matplotlib.pyplot as plt
 import h5py
 import os
 
+from pandas import DataFrame
+
 
 
 ############################## Plot Posterior Samples ##############################
@@ -208,4 +210,104 @@ def compare_intrinsic_params(event_name, output_dir="compare_plot"):
 
 def compare_extrinsic_params(event_name, output_dir="compare_plot"):
     compare_plot(event_name, ["luminosity_distance", "phase", "iota", "psi", "ra", "dec"], output_dir)
+
+
+def plot_prior(event_name, params, output_dir="prior"):
+    """
+    params: A list of params to be included in the plot
+    """
+    bilby_posterior_dir = "data/IGWN-GWTC3p0-v1-" + event_name[:-3] + "_PEDataRelease_mixed_cosmo.h5"
+
+
+
+def KLdivergence(x, y):
+    """Compute the Kullback-Leibler divergence between two samples.
+    Parameters
+    ----------
+    x : 1D np array
+        Samples from distribution P, which typically represents the true
+        distribution.
+    y : 1D np rray
+        Samples from distribution Q, which typically represents the approximate
+        distribution.
+    Returns
+    -------
+    out : float
+        The estimated Kullback-Leibler divergence D(P||Q).
+    """ 
+    bins = np.linspace(min(np.min(x), np.min(y)), max(np.max(x), np.max(y)), 100) 
+    # The size of array must be much greater than the number of bins
+    
+    prob_x = np.histogram(x, bins=bins)[0]/x.shape
+    prob_y = np.histogram(y, bins=bins)[0]/y.shape
+       
+    return np.sum(np.where((prob_y != 0) & (prob_x != 0), prob_y * (np.log(prob_y) - np.log(prob_x)), 0))
+    
+    
+def test(x, y):
+    return (1+(0.5)**2)/(2)-0.5 
+
+
+def JSdivergence(P, Q):
+  #create M
+  M=(P+Q)/2 #sum the two distributions then get average
+
+  kl_p_q = KLdivergence(P, M)
+  kl_q_p = KLdivergence(Q, M)
+
+  js = (kl_p_q+kl_q_p)/2
+  return js
+
+
+def output_summary(events):
+    """
+    event: a list of events
+    """
+    
+    chirp_mass = []
+    standard_chirp_mass = []
+    chirp_mass_JS = []
+    
+    eta = []
+    standard_eta = []
+    eta_JS = []
+    
+    luminosity_distance = []
+    standard_luminosity_distance = []
+    luminosity_distance_JS = []
+    
+    for event in events:
+        print("Generating summary for "+event)
+        bilby_posterior_dir = "data/IGWN-GWTC3p0-v1-" + event[:-3] + "_PEDataRelease_mixed_cosmo.h5"
+        jim_posterior_dir = "output/posterior_samples/" + event + ".h5"    
+
+        file = h5py.File(jim_posterior_dir, 'r')
+        jim_posterior = np.array(file['posterior'])
+        file.close()
+
+        file = h5py.File(bilby_posterior_dir, 'r')
+        
+        jim_chirp_mass = jim_posterior[:,0]
+        chirp_mass.append(np.mean(jim_chirp_mass))
+        standard_chirp_mass.append(np.mean(np.array(file['C01:Mixed']['posterior_samples']['chirp_mass'])))
+        chirp_mass_JS.append(JSdivergence(np.random.choice(jim_chirp_mass, size=10000), np.random.choice(np.array(file['C01:Mixed']['posterior_samples']['chirp_mass']), size=10000)))
+        
+        jim_eta = jim_posterior[:,1]
+        eta.append(np.mean(jim_eta))
+        standard_eta.append(np.mean(np.array(file['C01:Mixed']['posterior_samples']['symmetric_mass_ratio'])))
+        eta_JS.append(JSdivergence(np.random.choice(jim_eta, size=10000), np.random.choice(np.array(file['C01:Mixed']['posterior_samples']['symmetric_mass_ratio']), size=10000)))
+        
+        jim_luminosity_distance = jim_posterior[:,8]
+        luminosity_distance.append(np.mean(jim_luminosity_distance))
+        standard_luminosity_distance.append(np.mean(np.array(file['C01:Mixed']['posterior_samples']['luminosity_distance'])))
+        luminosity_distance_JS.append(JSdivergence(np.random.choice(jim_luminosity_distance, size=10000), np.random.choice(np.array(file['C01:Mixed']['posterior_samples']['luminosity_distance']), size=10000)))
+        
+        file.close()
+    
+    df = DataFrame({'event': events, 'chirp_mass': chirp_mass, 'standard_chirp_mass': standard_chirp_mass, 'chirp_mass_JS': chirp_mass_JS, 'eta': eta, 'standard_eta': standard_eta, 'eta_JS': eta_JS, 'luminosity_distance': luminosity_distance, 'standard_luminosity_distance': standard_luminosity_distance, 'luminosity_distance_JS': luminosity_distance_JS})
+    df.to_excel('test.xlsx', sheet_name='pe_result', index=False)
+    
+
+
+
 
