@@ -17,8 +17,16 @@ To run the programme: <br />
 ##Milestone
 * single event parameter estimation
 - [ ] Using same prior as BILBY (i.e. Uniform component mass on chirp mass)
+- [ ] Using same waveform as BILBY (i.e. IMPhenomXMR + SEOB)
 - [x] Getting posterior comparable to BILBY for high SNR events
+- [ ] Analysis similarity with KL-divergence
 
 * GWTC-3 events parameter estimation
 - [x] Run parameter estimation automatically on multiple events
 - [ ] Getting posterior comparable to BILBY for high SNR events
+
+
+##Topics to Learn
+- [ ] p-value
+- [ ] Kernal density distribution
+- [ ] KL-divergence
