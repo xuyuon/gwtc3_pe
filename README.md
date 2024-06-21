@@ -1,4 +1,4 @@
-
+# Parameter Estimation with JIM
 ## How to run
 To run a single event: <br />
 ```
