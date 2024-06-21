@@ -15,7 +15,10 @@ from gwosc import datasets
 from tap import Tap
 import argparse
 
-from run_analysis import plotPosterior, savePosterior, plotRunAnalysis, plotLikelihood, mkdir
+from parameter_estimation.utilities import mkdir
+from parameter_estimation.plotting import plotPosterior, plotRunningProgress, plotLikelihood
+from parameter_estimation.save import savePosterior
+
 
 
 
@@ -189,7 +192,7 @@ def runSingleEventPE(output_dir, event, gps, duration, post_trigger_duration, Mc
     mkdir(output_dir)
     plotPosterior(result, event, output_dir)
     savePosterior(result, event, output_dir)
-    plotRunAnalysis(summary, event, output_dir)
+    plotRunningProgress(summary, event, output_dir)
     plotLikelihood(summary, event, output_dir)
 
 
