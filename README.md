@@ -25,5 +25,6 @@ To run the programme: <br />
 - [x] Generate a configuration file automatically for initiating PE run
 - [x] Build a automatic programme which runs PE on GWTC-3 events
 - [x] Generate a output .xlsx file which summarizes the PE run
+- [ ] Incorporate single run event manager
 
 
