@@ -187,10 +187,10 @@ def runSingleEventPE(output_dir, event, gps, duration, post_trigger_duration, Mc
     summary = jim.Sampler.get_sampler_state(training=True)
 
     mkdir(output_dir)
-    plotPosterior(result, event)
-    savePosterior(result, event)
-    plotRunAnalysis(summary, event)
-    plotLikelihood(summary, event)
+    plotPosterior(result, event, output_dir)
+    savePosterior(result, event, output_dir)
+    plotRunAnalysis(summary, event, output_dir)
+    plotLikelihood(summary, event, output_dir)
 
 
 if __name__ == "__main__":
