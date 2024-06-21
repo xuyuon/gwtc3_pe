@@ -14,6 +14,9 @@ from pandas import DataFrame
 
 ############################## Plot Posterior Samples ##############################
 def plotPosterior(result, event, output_dir="output"):
+    """
+    Plot the posterior samples in a corner plot
+    """
     # labels = ["M_c", "eta", "s_1_z", "s_2_z", "dL", "t_c", "phase_c", "iota", "psi", "ra", "dec"]
     labels = ["M_c", "eta", "s_1_i", "s_1_j", "s_1_k", "s_2_i", "s_2_j", "s_2_k", "dL", "t_c", "phase_c", "iota", "psi", "ra", "dec"]
     
@@ -26,6 +29,9 @@ def plotPosterior(result, event, output_dir="output"):
 
 ############################## Save Posterior Samples ##############################
 def savePosterior(result, event, output_dir="output"):
+    """
+    Save the posterior sample points into a h5py file
+    """
     samples = np.array(list(result.values())).reshape(15, -1) # flatten the array
     transposed_array = samples.T # transpose the array
     mkdir(output_dir + "/posterior_samples")
@@ -34,6 +40,9 @@ def savePosterior(result, event, output_dir="output"):
 
 
 def plotRunAnalysis(summary, event, output_dir="output"):
+    """
+    Plot analysis of the run
+    """
     chains, log_prob, local_accs, global_accs, loss_vals = summary.values()
     rng_key = jax.random.PRNGKey(42)
     rng_key, subkey = jax.random.split(rng_key)
@@ -72,6 +81,9 @@ def plotRunAnalysis(summary, event, output_dir="output"):
     plt.savefig(output_dir + "/posterior_analysis/"+event+".jpeg")
 
 def plotLikelihood(summary, event, output_dir="output"):
+    """
+    Plot the likelihood of the run over epochs
+    """
     chains, log_prob, local_accs, global_accs, loss_vals = summary.values()
     log_prob = np.array(log_prob)
     
@@ -92,10 +104,15 @@ def plotLikelihood(summary, event, output_dir="output"):
 
 
 def mkdir(path):
+    """
+    To create a directory if it does not exist
+    """
     if not os.path.exists(path):
         os.makedirs(path)
 
+
 """
+Available params:
 ['final_spin', 'spin_2y', 'final_mass_source', 'spin_1y', 'cos_tilt_2', 'mass_1_source', 
 'viewing_angle', 'spin_2x', 'inverted_mass_ratio', 'phi_2', 'chi_p', 'chirp_mass', 'chirp_mass_source', 
 'total_mass', 'redshift', 'luminosity_distance', 'theta_jn', 'chi_eff', 'a_1', 'cos_iota', 
@@ -107,8 +124,12 @@ def mkdir(path):
 'chi_eff_infinity_only_prec_avg', 'chi_p_infinity_only_prec_avg', 'cos_tilt_1_infinity_only_prec_avg', 
 'cos_tilt_2_infinity_only_prec_avg']
 """
+
+
 def compare_plot(event_name, params, output_dir="compare_plot"):
     """
+    To compare the posterior samples from Jim and Bilby
+    
     params: A list of params to be included in the plot
     """
     bilby_posterior_dir = "data/IGWN-GWTC3p0-v1-" + event_name[:-3] + "_PEDataRelease_mixed_cosmo.h5"
@@ -205,10 +226,16 @@ def compare_plot(event_name, params, output_dir="compare_plot"):
     
 
 def compare_intrinsic_params(event_name, output_dir="compare_plot"):
+    """
+    To compare the intrinsic parameters of the posterior samples from Jim and Bilby
+    """
     compare_plot(event_name, ["chirp_mass", "eta", "spin1x", "spin1y", "spin1z", "spin2x", "spin2y", "spin2z"], output_dir)
   
 
 def compare_extrinsic_params(event_name, output_dir="compare_plot"):
+    """
+    To compare the extrinsic parameters of the posterior samples from Jim and Bilby
+    """
     compare_plot(event_name, ["luminosity_distance", "phase", "iota", "psi", "ra", "dec"], output_dir)
 
 
