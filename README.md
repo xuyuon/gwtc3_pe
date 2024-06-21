@@ -1,20 +1,30 @@
+
+## How to run
 To run a single event: <br />
-`sbatch run.sh`
+```
+python single_event_pe.py
+```
 <br />
 
 To generate a configuration file: <br />
-`python gen_config.py`
+```
+python gen_config.py
+```
 <br />
 
 To run all events in gwtc3: <br />
-`sbatch run_all.sh`
+```
+python all_events_pe.py
+```
 <br />
 
-To run the programme: <br />
-`sbatch -p gpu --gpus-per-task=4 --cpus-per-task=32 --ntasks=1 --mem=128G -N5 disBatch run_disBatch.sh` <br />
+To generate a summary report for the PE run: <br />
+```
+python gen_summary.py
+```
 
 
-##Tasks
+## Tasks
 * single event parameter estimation
 - [x] Be able to run parameter estimation for a single events
 - [x] Getting reasonable posterior for high SNR events (comparable to BILBY)
