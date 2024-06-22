@@ -3,8 +3,11 @@ import h5py
 from pandas import DataFrame
 import json
 
-from utilities import mkdir, JSdivergence
-from fetch import fetch_gps, fetch_detectors, fetch_catalog
+from gwosc.datasets import find_datasets, event_gps
+from gwosc import datasets
+
+from .utilities import mkdir, JSdivergence
+from .fetch import fetch_gps, fetch_detectors, fetch_catalog
 
 ############################## Save Posterior Samples ##############################
 def savePosterior(result, event, output_dir="output"):

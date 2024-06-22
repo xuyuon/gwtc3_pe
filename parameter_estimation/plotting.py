@@ -5,7 +5,7 @@ import jax
 import matplotlib.pyplot as plt
 import h5py
 
-from utilities import mkdir
+from .utilities import mkdir
 
 
 """
