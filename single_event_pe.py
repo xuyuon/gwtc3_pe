@@ -4,7 +4,7 @@ import jax
 import jax.numpy as jnp
 
 from jimgw.jim import Jim
-from jimgw.prior import Composite, Unconstrained_Uniform, Sphere, UniformInComponentChirpMass, UniformInComponentMassRatio
+from jimgw.prior import Composite, Unconstrained_Uniform, Sphere, UniformInComponentChirpMass, UniformInComponentMassRatio, PowerLaw
 from jimgw.single_event.detector import H1, L1, V1
 from jimgw.single_event.likelihood import TransientLikelihoodFD, HeterodynedTransientLikelihoodFD
 from jimgw.single_event.waveform import RippleIMRPhenomPv2
@@ -73,7 +73,7 @@ def runSingleEventPE(output_dir, event, gps, duration, post_trigger_duration, Mc
         )
     s1_prior = Sphere(naming="s1")
     s2_prior = Sphere(naming="s2")
-    dL_prior = Unconstrained_Uniform(0.0, 10000.0, naming=["d_L"])
+    dL_prior = PowerLaw(0.0, 10000.0, 2.0, naming=["d_L"])
     t_c_prior = Unconstrained_Uniform(-0.5, 0.5, naming=["t_c"])
     phase_c_prior = Unconstrained_Uniform(0.0, 2 * jnp.pi, naming=["phase_c"])
     cos_iota_prior = Unconstrained_Uniform(
