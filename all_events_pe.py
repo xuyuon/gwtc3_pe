@@ -7,9 +7,9 @@ import json
 
 gwtc3 = datasets.find_datasets(type='events', catalog='GWTC-3-confident')
 
-output_dir = 'gwtc3_pe'
+output_dir = 'uniform_component_output'
 
-file = open('configs_2.json')
+file = open('configs.json')
 configs = json.load(file)['configs']
 
 for event in gwtc3:
