@@ -57,20 +57,13 @@ def runSingleEventPE(output_dir, event, gps, duration, post_trigger_duration, Mc
     ###########################################
     ########## Set up priors ##################
     ###########################################
-    # Mc_prior = Unconstrained_Uniform(Mc_prior[0], Mc_prior[1], naming=["M_c"])
-    # q_prior = Unconstrained_Uniform(
-    #     0.125,
-    #     1.0,
-    #     naming=["q"],
-    #     transforms={"q": ("eta", lambda params: params["q"] / (1 + params["q"]) ** 2)},
-    # )
-    Mc_prior = UniformInComponentChirpMass(Mc_prior[0], Mc_prior[1], naming=["M_c"])
-    q_prior = UniformInComponentMassRatio(
-        0.125, 
-        1.0, 
+    Mc_prior = Unconstrained_Uniform(Mc_prior[0], Mc_prior[1], naming=["M_c"])
+    q_prior = Unconstrained_Uniform(
+        0.125,
+        1.0,
         naming=["q"],
         transforms={"q": ("eta", lambda params: params["q"] / (1 + params["q"]) ** 2)},
-        )
+    )
     s1_prior = Sphere(naming="s1")
     s2_prior = Sphere(naming="s2")
     dL_prior = PowerLaw(0.0, 10000.0, 2.0, naming=["d_L"])
