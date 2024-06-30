@@ -59,13 +59,6 @@ def runSingleEventPE(output_dir, event, gps, duration, post_trigger_duration, Mc
     ###########################################
     ########## Set up priors ##################
     ###########################################
-    # Mc_prior = Unconstrained_Uniform(Mc_prior[0], Mc_prior[1], naming=["M_c"])
-    # q_prior = Unconstrained_Uniform(
-    #     0.125,
-    #     1.0,
-    #     naming=["q"],
-    #     transforms={"q": ("eta", lambda params: params["q"] / (1 + params["q"]) ** 2)},
-    # )
     Mc_prior = UniformInComponentChirpMass(Mc_prior[0], Mc_prior[1], naming=["M_c"])
     q_prior = UniformInComponentMassRatio(
         0.125, 
@@ -73,8 +66,6 @@ def runSingleEventPE(output_dir, event, gps, duration, post_trigger_duration, Mc
         naming=["q"],
         transforms={"q": ("eta", lambda params: params["q"] / (1 + params["q"]) ** 2)},
     )
-    # s1_prior = Sphere(naming="s1")
-    # s2_prior = Sphere(naming="s2")
     a1_prior = Unconstrained_Uniform(0.0, 0.99, naming=["a_1"])
     a2_prior = Unconstrained_Uniform(0.0, 0.99, naming=["a_2"])
     phi_12_prior = Unconstrained_Uniform(0.0, 2 * jnp.pi, naming=["phi_12"])
@@ -121,19 +112,6 @@ def runSingleEventPE(output_dir, event, gps, duration, post_trigger_duration, Mc
     dL_prior = PowerLaw(0.0, 10000.0, 2.0, naming=["d_L"])
     t_c_prior = Unconstrained_Uniform(-0.5, 0.5, naming=["t_c"])
     phase_c_prior = Unconstrained_Uniform(0.0, 2 * jnp.pi, naming=["phase_c"])
-    # cos_iota_prior = Unconstrained_Uniform(
-    #     -1.0,
-    #     1.0,
-    #     naming=["cos_iota"],
-    #     transforms={
-    #         "cos_iota": (
-    #             "iota",
-    #             lambda params: jnp.arccos(
-    #                 jnp.arcsin(jnp.sin(params["cos_iota"] / 2 * jnp.pi)) * 2 / jnp.pi
-    #             ),
-    #         )
-    #     },
-    # )
     psi_prior = Unconstrained_Uniform(0.0, jnp.pi, naming=["psi"])
     ra_prior = Unconstrained_Uniform(0.0, 2 * jnp.pi, naming=["ra"])
     sin_dec_prior = Unconstrained_Uniform(
@@ -173,18 +151,18 @@ def runSingleEventPE(output_dir, event, gps, duration, post_trigger_duration, Mc
     epsilon = 1e-3
     bounds = jnp.array(
         [
-            [1.0, 120.0],
+            [1.0, 150.0],
             [0.125, 1.0],
-            [0, jnp.pi],
-            [0, 2 * jnp.pi],
-            [0.0, 1.0],
-            [0, jnp.pi],
-            [0, 2 * jnp.pi],
-            [0.0, 1.0],
-            [0.0, 10000],
-            [-0.05, 0.05],
-            [0.0, 2 * jnp.pi],
-            [-1.0, 1.0],
+            [0.0, 0.99], #a1
+            [0.0, 0.99], #a2
+            [0, 2 * jnp.pi], #phi_12
+            [0, 2 * jnp.pi], #phi_jl
+            [0.0, 1.0], #sin_theta_jn
+            [0.0, 1.0], #sin_tilt_1
+            [0.0, 1.0], #sin_tilt_2
+            [0.0, 10000], #dL
+            [-0.5, 0.5], #tc
+            [0.0, 2 * jnp.pi], #phase_c
             [0.0, jnp.pi],
             [0.0, 2 * jnp.pi],
             [-1.0, 1.0],
@@ -244,8 +222,10 @@ def runSingleEventPE(output_dir, event, gps, duration, post_trigger_duration, Mc
     result = jim.get_samples()
     summary = jim.Sampler.get_sampler_state(training=True)
 
+    labels = ["M_c", "eta", "a1", "a2", "phi_12", "phi_jl", "theta_jn", "tilt_1", "tilt_2", "d_L", "t_c", "phase_c", "psi", "ra", "dec"]
+    
     mkdir(output_dir)
-    plotPosterior(result, event, output_dir)
+    plotPosterior(result, event, output_dir, labels=labels)
     savePosterior(result, event, output_dir)
     plotRunningProgress(summary, event, output_dir)
     plotLikelihood(summary, event, output_dir)
