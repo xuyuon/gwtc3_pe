@@ -24,12 +24,10 @@ Available params:
 
 ############################## Functions for Plotting Various Graphs ##############################
 
-def plotPosterior(result, event, output_dir="output"):
+def plotPosterior(result, event, output_dir="output", labels=["M_c", "eta", "s_1_i", "s_1_j", "s_1_k", "s_2_i", "s_2_j", "s_2_k", "dL", "t_c", "phase_c", "iota", "psi", "ra", "dec"]):
     """
     Plot the posterior samples in a corner plot
     """
-    # labels = ["M_c", "eta", "s_1_z", "s_2_z", "dL", "t_c", "phase_c", "iota", "psi", "ra", "dec"]
-    labels = ["M_c", "eta", "s_1_i", "s_1_j", "s_1_k", "s_2_i", "s_2_j", "s_2_k", "dL", "t_c", "phase_c", "iota", "psi", "ra", "dec"]
     
     samples = np.array(list(result.values())).reshape(15, -1) # flatten the array
     transposed_array = samples.T # transpose the array
