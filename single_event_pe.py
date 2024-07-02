@@ -109,7 +109,7 @@ def runSingleEventPE(output_dir, event, gps, duration, post_trigger_duration, Mc
             )
         },
     )
-    dL_prior = PowerLaw(0.0, 10000.0, 2.0, naming=["d_L"])
+    dL_prior = PowerLaw(100.0, 10000.0, 2.0, naming=["d_L"])
     t_c_prior = Unconstrained_Uniform(-0.5, 0.5, naming=["t_c"])
     phase_c_prior = Unconstrained_Uniform(0.0, 2 * jnp.pi, naming=["phase_c"])
     psi_prior = Unconstrained_Uniform(0.0, jnp.pi, naming=["psi"])
