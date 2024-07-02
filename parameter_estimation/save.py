@@ -13,13 +13,24 @@ from .fetch import fetch_gps, fetch_detectors, fetch_catalog
 def savePosterior(result, event, output_dir="output"):
     """
     Save the posterior sample points into a h5py file
+    keys:
+    ----------
+        posterior: posterior sample points
+        parameters: list of parameters contained in the file
     """
-    samples = np.array(list(result.values())).reshape(15, -1) # flatten the array
-    transposed_array = samples.T # transpose the array
-    mkdir(output_dir + "/posterior_samples")
     with h5py.File(output_dir + '/posterior_samples/' + event + '.h5', 'w') as f:
-        f.create_dataset('posterior', data=transposed_array)
+        f.create_dataset('parameters', data=list(result.keys()))
+        for param in result.keys():
+            f.create_dataset('posterior/'+param, data=result[param])
 
+
+def getPosterior(event, param, output_dir="output"):
+    """
+    Get the posterior sample points from a h5py file
+    """
+    with h5py.File(output_dir + '/posterior_samples/' + event + '.h5', 'r') as f:
+        return np.array(f['posterior/'+param]).reshape(-1)
+    
 
 ############################## Save Summary of PE Results ##############################
 def saveSummary(events):
