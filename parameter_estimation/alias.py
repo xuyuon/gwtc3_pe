@@ -1,0 +1,17 @@
+JIM_TO_BILBY_ALIAS = {
+    "M_c": "chirp_mass",
+    "eta": "symmetric_mass_ratio",
+    "a_1": 'a_1', 
+    "a_2": 'a_2', 
+    "phi_12": 'phi_12', 
+    "phi_jl": 'phi_jl', 
+    "theta_jn": 'theta_jn', 
+    "tilt_1": 'tilt_1', 
+    "tilt_2": 'tilt_2', 
+    "d_L": 'luminosity_distance', 
+    "t_c": None, 
+    "phase_c": 'phase', 
+    "psi": "psi", 
+    "ra": "ra", 
+    "dec": "dec",
+}
