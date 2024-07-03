@@ -7,7 +7,7 @@ import json
 
 gwtc3 = datasets.find_datasets(type='events', catalog='GWTC-3-confident')
 
-output_dir = 'new_prior_output'
+output_dir = 'output_epoch_40'
 
 file = open('configs.json')
 configs = json.load(file)['configs']
@@ -25,7 +25,8 @@ for event in gwtc3:
             Mc_prior=[event_config['Mc_prior']['min'], event_config['Mc_prior']['max']],
             ifos=event_config['detectors'],
             waveform="RippleIMRPhenomPv2",
-            heterodyned=True
+            heterodyned=True,
+            epochs=40
             )
     except Exception as e: print(e)
 
