@@ -4,10 +4,10 @@ import jax
 import jax.numpy as jnp
 
 from jimgw.jim import Jim
-from jimgw.prior import Composite, Unconstrained_Uniform, Sphere, UniformInComponentChirpMass, UniformInComponentMassRatio, PowerLaw
+from jimgw.prior import Composite, Unconstrained_Uniform, Sphere
 from jimgw.single_event.detector import H1, L1, V1
 from jimgw.single_event.likelihood import TransientLikelihoodFD, HeterodynedTransientLikelihoodFD
-from jimgw.single_event.waveform import RippleIMRPhenomPv2, RippleIMRPhenomPv2_Transform
+from jimgw.single_event.waveform import RippleIMRPhenomPv2
 from jimgw.single_event.utils import spin_to_spin
 from flowMC.strategy.optimization import optimization_Adam
 
@@ -53,65 +53,36 @@ def runSingleEventPE(output_dir, event, gps, duration, post_trigger_duration, Mc
         V1.load_data(gps, start_pad, end_pad, fmin, fmax, psd_pad=duration*4, tukey_alpha=0.2)
         detectors.append(V1)
         
-    # waveform = RippleIMRPhenomPv2(f_ref=20)
-    waveform =  RippleIMRPhenomPv2_Transform(f_ref=20)
+    waveform = RippleIMRPhenomPv2(f_ref=20)
 
     ###########################################
     ########## Set up priors ##################
     ###########################################
-    Mc_prior = UniformInComponentChirpMass(Mc_prior[0], Mc_prior[1], naming=["M_c"])
-    q_prior = UniformInComponentMassRatio(
-        0.125, 
-        1.0, 
+    Mc_prior = Unconstrained_Uniform(Mc_prior[0], Mc_prior[1], naming=["M_c"])
+    q_prior = Unconstrained_Uniform(
+        0.125,
+        1.0,
         naming=["q"],
         transforms={"q": ("eta", lambda params: params["q"] / (1 + params["q"]) ** 2)},
     )
-    a1_prior = Unconstrained_Uniform(0.0, 0.99, naming=["a_1"])
-    a2_prior = Unconstrained_Uniform(0.0, 0.99, naming=["a_2"])
-    phi_12_prior = Unconstrained_Uniform(0.0, 2 * jnp.pi, naming=["phi_12"])
-    phi_jl_prior = Unconstrained_Uniform(0.0, 2 * jnp.pi, naming=["phi_jl"])
-    sin_theta_jn = Unconstrained_Uniform(
-        0.0,
-        1.0, 
-        naming=["sin_theta_jn"],
-        transforms={
-            "sin_theta_jn": (
-                "theta_jn",
-                lambda params: jnp.arcsin(
-                    jnp.arcsin(jnp.sin(params["sin_theta_jn"] / 2 * jnp.pi)) * 2 / jnp.pi
-                ),
-            )
-        },
-    )
-    sin_tilt_1 = Unconstrained_Uniform(
-        0.0,
-        1.0, 
-        naming=["sin_tilt_1"],
-        transforms={
-            "sin_tilt_1": (
-                "tilt_1",
-                lambda params: jnp.arcsin(
-                    jnp.arcsin(jnp.sin(params["sin_tilt_1"] / 2 * jnp.pi)) * 2 / jnp.pi
-                ),
-            )
-        },
-    )
-    sin_tilt_2 = Unconstrained_Uniform(
-        0.0,
-        1.0, 
-        naming=["sin_tilt_2"],
-        transforms={
-            "sin_tilt_2": (
-                "tilt_2",
-                lambda params: jnp.arcsin(
-                    jnp.arcsin(jnp.sin(params["sin_tilt_2"] / 2 * jnp.pi)) * 2 / jnp.pi
-                ),
-            )
-        },
-    )
-    dL_prior = PowerLaw(100.0, 10000.0, 2.0, naming=["d_L"])
+    s1_prior = Sphere(naming="s1")
+    s2_prior = Sphere(naming="s2")
+    dL_prior = Unconstrained_Uniform(100.0, 10000.0, naming=["d_L"])
     t_c_prior = Unconstrained_Uniform(-0.5, 0.5, naming=["t_c"])
     phase_c_prior = Unconstrained_Uniform(0.0, 2 * jnp.pi, naming=["phase_c"])
+    cos_iota_prior = Unconstrained_Uniform(
+        -1.0,
+        1.0,
+        naming=["cos_iota"],
+        transforms={
+            "cos_iota": (
+                "iota",
+                lambda params: jnp.arccos(
+                    jnp.arcsin(jnp.sin(params["cos_iota"] / 2 * jnp.pi)) * 2 / jnp.pi
+                ),
+            )
+        },
+    )
     psi_prior = Unconstrained_Uniform(0.0, jnp.pi, naming=["psi"])
     ra_prior = Unconstrained_Uniform(0.0, 2 * jnp.pi, naming=["ra"])
     sin_dec_prior = Unconstrained_Uniform(
@@ -132,16 +103,12 @@ def runSingleEventPE(output_dir, event, gps, duration, post_trigger_duration, Mc
         [
             Mc_prior,
             q_prior,
-            a1_prior,
-            a2_prior,
-            phi_12_prior,
-            phi_jl_prior,
-            sin_theta_jn,
-            sin_tilt_1,
-            sin_tilt_2,
+            s1_prior,
+            s2_prior,
             dL_prior,
             t_c_prior,
             phase_c_prior,
+            cos_iota_prior,
             psi_prior,
             ra_prior,
             sin_dec_prior,
@@ -151,18 +118,18 @@ def runSingleEventPE(output_dir, event, gps, duration, post_trigger_duration, Mc
     epsilon = 1e-3
     bounds = jnp.array(
         [
-            [1.0, 150.0],
+            [1.0, 120.0],
             [0.125, 1.0],
-            [0.0, 0.99], #a1
-            [0.0, 0.99], #a2
-            [0, 2 * jnp.pi], #phi_12
-            [0, 2 * jnp.pi], #phi_jl
-            [0.0, 1.0], #sin_theta_jn
-            [0.0, 1.0], #sin_tilt_1
-            [0.0, 1.0], #sin_tilt_2
-            [0.0, 10000], #dL
-            [-0.5, 0.5], #tc
-            [0.0, 2 * jnp.pi], #phase_c
+            [0, jnp.pi],
+            [0, 2 * jnp.pi],
+            [0.0, 1.0],
+            [0, jnp.pi],
+            [0, 2 * jnp.pi],
+            [0.0, 1.0],
+            [0.0, 10000],
+            [-0.05, 0.05],
+            [0.0, 2 * jnp.pi],
+            [-1.0, 1.0],
             [0.0, jnp.pi],
             [0.0, 2 * jnp.pi],
             [-1.0, 1.0],
