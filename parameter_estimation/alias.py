@@ -1,6 +1,13 @@
 JIM_TO_BILBY_ALIAS = {
     "M_c": "chirp_mass",
     "eta": "symmetric_mass_ratio",
+    "s1_x": "spin_1x",
+    's1_y': "spin_1y",
+    's1_z': "spin_1z",
+    's2_x': "spin_2x",
+    's2_y': "spin_2y",
+    's2_z': "spin_2z",
+    'iota': "iota",
     "a_1": 'a_1', 
     "a_2": 'a_2', 
     "phi_12": 'phi_12', 
