@@ -4,10 +4,11 @@ import jax
 import jax.numpy as jnp
 
 from jimgw.jim import Jim
-from jimgw.prior import Composite, Unconstrained_Uniform, Sphere, UniformInComponentChirpMass, UniformInComponentMassRatio, PowerLaw
+from jimgw.prior import Composite, Unconstrained_Uniform, Sphere
 from jimgw.single_event.detector import H1, L1, V1
 from jimgw.single_event.likelihood import TransientLikelihoodFD, HeterodynedTransientLikelihoodFD
 from jimgw.single_event.waveform import RippleIMRPhenomPv2
+from jimgw.single_event.utils import spin_to_spin
 from flowMC.strategy.optimization import optimization_Adam
 
 from gwosc.datasets import find_datasets, event_gps
@@ -66,7 +67,7 @@ def runSingleEventPE(output_dir, event, gps, duration, post_trigger_duration, Mc
     )
     s1_prior = Sphere(naming="s1")
     s2_prior = Sphere(naming="s2")
-    dL_prior = PowerLaw(0.0, 10000.0, 2.0, naming=["d_L"])
+    dL_prior = Unconstrained_Uniform(100.0, 10000.0, naming=["d_L"])
     t_c_prior = Unconstrained_Uniform(-0.5, 0.5, naming=["t_c"])
     phase_c_prior = Unconstrained_Uniform(0.0, 2 * jnp.pi, naming=["phase_c"])
     cos_iota_prior = Unconstrained_Uniform(
@@ -188,8 +189,10 @@ def runSingleEventPE(output_dir, event, gps, duration, post_trigger_duration, Mc
     result = jim.get_samples()
     summary = jim.Sampler.get_sampler_state(training=True)
 
+    labels = ["M_c", "eta", "a1", "a2", "phi_12", "phi_jl", "theta_jn", "tilt_1", "tilt_2", "d_L", "t_c", "phase_c", "psi", "ra", "dec"]
+    
     mkdir(output_dir)
-    plotPosterior(result, event, output_dir)
+    plotPosterior(result, event, output_dir, labels=labels)
     savePosterior(result, event, output_dir)
     plotRunningProgress(summary, event, output_dir)
     plotLikelihood(summary, event, output_dir)
