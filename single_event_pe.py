@@ -23,7 +23,7 @@ from parameter_estimation.save import savePosterior
 
 
 
-def runSingleEventPE(output_dir, event, gps, duration, post_trigger_duration, Mc_prior, ifos, waveform, heterodyned):
+def runSingleEventPE(output_dir, event, gps, duration, post_trigger_duration, Mc_prior, ifos, waveform, heterodyned, epochs=40):
     jax.config.update("jax_enable_x64", True)
     
     #################### Fetching the Data ####################
@@ -150,7 +150,7 @@ def runSingleEventPE(output_dir, event, gps, duration, post_trigger_duration, Mc
     Adam_optimizer = optimization_Adam(n_steps=3000, learning_rate=0.01, noise_level=1, bounds=bounds)
 
     import optax
-    n_epochs = 40
+    n_epochs = epochs
     n_loop_training = 100
     total_epochs = n_epochs * n_loop_training
     start = total_epochs//10

@@ -18,6 +18,7 @@ def savePosterior(result, event, output_dir="output"):
         posterior: posterior sample points
         parameters: list of parameters contained in the file
     """
+    mkdir(output_dir + '/posterior_samples')
     with h5py.File(output_dir + '/posterior_samples/' + event + '.h5', 'w') as f:
         f.create_dataset('parameters', data=list(result.keys()))
         for param in result.keys():

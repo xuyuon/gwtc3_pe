@@ -89,7 +89,7 @@ def plotLikelihood(summary, event, output_dir="output"):
     plt.savefig(output_dir + "/likelihood/"+event+".jpeg")
     
     
-def plotCompare(event_name, params, output_dir="compare_plot"):
+def plotCompare(event_name, params, output_dir="compare_plot", result_dir="output"):
     """
     To compare the posterior samples from Jim and Bilby
     
@@ -98,7 +98,7 @@ def plotCompare(event_name, params, output_dir="compare_plot"):
     jim_params = []
     bilby_params = []
     for param in params:
-        jim_params.append(getPosterior(event_name, param))
+        jim_params.append(getPosterior(event_name, param, result_dir))
         bilby_params.append(getBilbyPosterior(event_name, param))
         
     jim_params = np.array(jim_params).T
@@ -113,18 +113,19 @@ def plotCompare(event_name, params, output_dir="compare_plot"):
     corner.corner(bilby_params, labels=params, plot_datapoints=False, title_quantiles=[0.16, 0.5, 0.84], show_titles=True, title_fmt='g', use_math_text=True, color = 'blue', fig=fig)
 
     plt.savefig(output_dir+"/"+event_name+".jpeg")
+    plt.close()
     
     
-def plotIntrinsicParamsComparison(event_name, output_dir="compare_plot"):
+def plotIntrinsicParamsComparison(event_name, output_dir="compare_plot", result_dir="output"):
     """
     To compare the intrinsic parameters of the posterior samples from Jim and Bilby
     """
-    plotCompare(event_name, ["M_c", "eta", "s1_x", "s1_y", "s1_z", "s2_x", "s2_y", "s2_z"], output_dir)
+    plotCompare(event_name, ["M_c", "eta", "s1_x", "s1_y", "s1_z", "s2_x", "s2_y", "s2_z"], output_dir, result_dir)
     # plotCompare(event_name, ["M_c", "eta", "a_1", "a_2", "phi_12", "phi_jl", "tilt_1", "tilt_2"], output_dir)
 
-def plotExtrinsicParamsComparison(event_name, output_dir="compare_plot"):
+def plotExtrinsicParamsComparison(event_name, output_dir="compare_plot", result_dir="output"):
     """
     To compare the extrinsic parameters of the posterior samples from Jim and Bilby
     """
-    plotCompare(event_name, ["d_L", "phase_c", "iota", "psi", "ra", "dec"], output_dir)
+    plotCompare(event_name, ["d_L", "phase_c", "iota", "psi", "ra", "dec"], output_dir, result_dir)
     # plotCompare(event_name, ["d_L", "phase_c", "theta_jn", "psi", "ra", "dec"], output_dir)
