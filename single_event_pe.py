@@ -19,6 +19,7 @@ import argparse
 from parameter_estimation.utilities import mkdir
 from parameter_estimation.plotting import plotPosterior, plotRunningProgress, plotLikelihood
 from parameter_estimation.save import savePosterior
+from parameter_estimation.prior import prior_setting_1, prior_setting_2
 
 
 
@@ -29,15 +30,11 @@ def runSingleEventPE(output_dir, event, gps, duration, post_trigger_duration, Mc
     #################### Fetching the Data ####################
     total_time_start = time.time()
 
-    # first, fetch a 4s segment centered on GW150914
-   
-    
     post_trigger_duration = duration // 2
     start_pad = duration - post_trigger_duration
     end_pad = post_trigger_duration
     fmin = 20.0
     fmax = 1024.0
-
     
     detectors = []
 
@@ -59,94 +56,7 @@ def runSingleEventPE(output_dir, event, gps, duration, post_trigger_duration, Mc
     ###########################################
     ########## Set up priors ##################
     ###########################################
-    Mc_prior = UniformInComponentChirpMass(Mc_prior[0], Mc_prior[1], naming=["M_c"])
-    q_prior = UniformInComponentMassRatio(
-        0.125, 
-        1.0, 
-        naming=["q"],
-        transforms={"q": ("eta", lambda params: params["q"] / (1 + params["q"]) ** 2)},
-    )
-    a1_prior = Unconstrained_Uniform(0.0, 0.99, naming=["a_1"])
-    a2_prior = Unconstrained_Uniform(0.0, 0.99, naming=["a_2"])
-    phi_12_prior = Unconstrained_Uniform(0.0, 2 * jnp.pi, naming=["phi_12"])
-    phi_jl_prior = Unconstrained_Uniform(0.0, 2 * jnp.pi, naming=["phi_jl"])
-    sin_theta_jn = Unconstrained_Uniform(
-        0.0,
-        1.0, 
-        naming=["sin_theta_jn"],
-        transforms={
-            "sin_theta_jn": (
-                "theta_jn",
-                lambda params: jnp.arcsin(
-                    jnp.arcsin(jnp.sin(params["sin_theta_jn"] / 2 * jnp.pi)) * 2 / jnp.pi
-                ),
-            )
-        },
-    )
-    sin_tilt_1 = Unconstrained_Uniform(
-        0.0,
-        1.0, 
-        naming=["sin_tilt_1"],
-        transforms={
-            "sin_tilt_1": (
-                "tilt_1",
-                lambda params: jnp.arcsin(
-                    jnp.arcsin(jnp.sin(params["sin_tilt_1"] / 2 * jnp.pi)) * 2 / jnp.pi
-                ),
-            )
-        },
-    )
-    sin_tilt_2 = Unconstrained_Uniform(
-        0.0,
-        1.0, 
-        naming=["sin_tilt_2"],
-        transforms={
-            "sin_tilt_2": (
-                "tilt_2",
-                lambda params: jnp.arcsin(
-                    jnp.arcsin(jnp.sin(params["sin_tilt_2"] / 2 * jnp.pi)) * 2 / jnp.pi
-                ),
-            )
-        },
-    )
-    dL_prior = PowerLaw(100.0, 10000.0, 2.0, naming=["d_L"])
-    t_c_prior = Unconstrained_Uniform(-0.5, 0.5, naming=["t_c"])
-    phase_c_prior = Unconstrained_Uniform(0.0, 2 * jnp.pi, naming=["phase_c"])
-    psi_prior = Unconstrained_Uniform(0.0, jnp.pi, naming=["psi"])
-    ra_prior = Unconstrained_Uniform(0.0, 2 * jnp.pi, naming=["ra"])
-    sin_dec_prior = Unconstrained_Uniform(
-        -1.0,
-        1.0,
-        naming=["sin_dec"],
-        transforms={
-            "sin_dec": (
-                "dec",
-                lambda params: jnp.arcsin(
-                    jnp.arcsin(jnp.sin(params["sin_dec"] / 2 * jnp.pi)) * 2 / jnp.pi
-                ),
-            )
-        },
-    )
-
-    prior = Composite(
-        [
-            Mc_prior,
-            q_prior,
-            a1_prior,
-            a2_prior,
-            phi_12_prior,
-            phi_jl_prior,
-            sin_theta_jn,
-            sin_tilt_1,
-            sin_tilt_2,
-            dL_prior,
-            t_c_prior,
-            phase_c_prior,
-            psi_prior,
-            ra_prior,
-            sin_dec_prior,
-        ],
-    )
+    prior = prior_setting_2(Mc_prior)
 
     epsilon = 1e-3
     bounds = jnp.array(
@@ -173,7 +83,6 @@ def runSingleEventPE(output_dir, event, gps, duration, post_trigger_duration, Mc
         likelihood = HeterodynedTransientLikelihoodFD(detectors, prior=prior, bounds=bounds, waveform=waveform, trigger_time=gps, duration=duration, post_trigger_duration=post_trigger_duration,n_bins=1000)
     else:
         likelihood = TransientLikelihoodFD(detectors, waveform=waveform, trigger_time=gps, duration=duration, post_trigger_duration=post_trigger_duration)
-
 
     mass_matrix = jnp.eye(prior.n_dim)
     mass_matrix = mass_matrix.at[1, 1].set(1e-3)
@@ -214,9 +123,7 @@ def runSingleEventPE(output_dir, event, gps, duration, post_trigger_duration, Mc
     )
 
     import numpy as np
-
     jim.sample(jax.random.PRNGKey(42))
-
 
     #################### Output ####################
     result = jim.get_samples()
@@ -243,9 +150,8 @@ if __name__ == "__main__":
     waveform: waveform model to use
     heterodyned: whether to use heterodyned likelihood
     """
-
+    
     parser = argparse.ArgumentParser()
-
     parser.add_argument('--output_dir', type=str, default="output", help='Your name')
     parser.add_argument('--event', type=str, default="GW191216_213338", help='Your name')
     parser.add_argument('--gps', type=float, default=1260567236.4, help='Your name')
