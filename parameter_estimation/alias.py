@@ -1,5 +1,6 @@
 JIM_TO_BILBY_ALIAS = {
     "M_c": "chirp_mass",
+    "q": "mass_ratio",
     "eta": "symmetric_mass_ratio",
     "s1_x": "spin_1x",
     's1_y': "spin_1y",
@@ -16,7 +17,7 @@ JIM_TO_BILBY_ALIAS = {
     "tilt_1": 'tilt_1', 
     "tilt_2": 'tilt_2', 
     "d_L": 'luminosity_distance', 
-    "t_c": None, 
+    "t_c": "geocent_time", 
     "phase_c": 'phase', 
     "psi": "psi", 
     "ra": "ra", 
