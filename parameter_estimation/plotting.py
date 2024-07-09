@@ -120,12 +120,12 @@ def plotIntrinsicParamsComparison(event_name, output_dir="compare_plot", result_
     """
     To compare the intrinsic parameters of the posterior samples from Jim and Bilby
     """
-    plotCompare(event_name, ["M_c", "eta", "s1_x", "s1_y", "s1_z", "s2_x", "s2_y", "s2_z"], output_dir, result_dir)
-    # plotCompare(event_name, ["M_c", "eta", "a_1", "a_2", "phi_12", "phi_jl", "tilt_1", "tilt_2"], output_dir)
+    # plotCompare(event_name, ["M_c", "eta", "s1_x", "s1_y", "s1_z", "s2_x", "s2_y", "s2_z"], output_dir, result_dir)
+    plotCompare(event_name, ["M_c", "eta", "a_1", "a_2", "phi_12", "phi_jl", "tilt_1", "tilt_2"], output_dir)
 
 def plotExtrinsicParamsComparison(event_name, output_dir="compare_plot", result_dir="output"):
     """
     To compare the extrinsic parameters of the posterior samples from Jim and Bilby
     """
-    plotCompare(event_name, ["d_L", "phase_c", "iota", "psi", "ra", "dec"], output_dir, result_dir)
-    # plotCompare(event_name, ["d_L", "phase_c", "theta_jn", "psi", "ra", "dec"], output_dir)
+    # plotCompare(event_name, ["d_L", "phase_c", "iota", "psi", "ra", "dec"], output_dir, result_dir)
+    plotCompare(event_name, ["d_L", "phase_c", "theta_jn", "psi", "ra", "dec"], output_dir)
