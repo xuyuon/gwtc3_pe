@@ -8,6 +8,65 @@ import jax
 from .utilities import spin_to_spin
 from .alias import JIM_TO_BILBY_ALIAS
 
+def prior_setting_default(M_c):
+    Mc_prior = Unconstrained_Uniform(Mc[0], Mc[1], naming=["M_c"])
+    q_prior = Unconstrained_Uniform(
+        0.125,
+        1.0,
+        naming=["q"],
+        transforms={"q": ("eta", lambda params: params["q"] / (1 + params["q"]) ** 2)},
+    )
+    s1_prior = Sphere(naming="s1")
+    s2_prior = Sphere(naming="s2")
+    dL_prior = Unconstrained_Uniform(100.0, 10000.0, naming=["d_L"])
+    t_c_prior = Unconstrained_Uniform(-0.5, 0.5, naming=["t_c"])
+    phase_c_prior = Unconstrained_Uniform(0.0, 2 * jnp.pi, naming=["phase_c"])
+    cos_iota_prior = Unconstrained_Uniform(
+        -1.0,
+        1.0,
+        naming=["cos_iota"],
+        transforms={
+            "cos_iota": (
+                "iota",
+                lambda params: jnp.arccos(
+                    jnp.arcsin(jnp.sin(params["cos_iota"] / 2 * jnp.pi)) * 2 / jnp.pi
+                ),
+            )
+        },
+    )
+    psi_prior = Unconstrained_Uniform(0.0, jnp.pi, naming=["psi"])
+    ra_prior = Unconstrained_Uniform(0.0, 2 * jnp.pi, naming=["ra"])
+    sin_dec_prior = Unconstrained_Uniform(
+        -1.0,
+        1.0,
+        naming=["sin_dec"],
+        transforms={
+            "sin_dec": (
+                "dec",
+                lambda params: jnp.arcsin(
+                    jnp.arcsin(jnp.sin(params["sin_dec"] / 2 * jnp.pi)) * 2 / jnp.pi
+                ),
+            )
+        },
+    )
+
+    prior = Composite(
+        [
+            Mc_prior,
+            q_prior,
+            s1_prior,
+            s2_prior,
+            dL_prior,
+            t_c_prior,
+            phase_c_prior,
+            cos_iota_prior,
+            psi_prior,
+            ra_prior,
+            sin_dec_prior,
+        ],
+    )
+    return prior
+
 def prior_setting_1(M_c):
     Mc_prior = UniformInComponentChirpMass(M_c[0], M_c[1], naming=["M_c"])
     q_prior = UniformInComponentMassRatio(
