@@ -4,10 +4,10 @@ import jax
 import jax.numpy as jnp
 
 from jimgw.jim import Jim
-from jimgw.prior import Composite, Unconstrained_Uniform, Sphere
+from jimgw.prior import Composite, Unconstrained_Uniform, Sphere, UniformInComponentChirpMass, UniformInComponentMassRatio, PowerLaw
 from jimgw.single_event.detector import H1, L1, V1
 from jimgw.single_event.likelihood import TransientLikelihoodFD, HeterodynedTransientLikelihoodFD
-from jimgw.single_event.waveform import RippleIMRPhenomPv2
+from jimgw.single_event.waveform import RippleIMRPhenomPv2, RippleIMRPhenomPv2_Transform
 from jimgw.single_event.utils import spin_to_spin
 from flowMC.strategy.optimization import optimization_Adam
 
@@ -19,6 +19,7 @@ import argparse
 from parameter_estimation.utilities import mkdir
 from parameter_estimation.plotting import plotPosterior, plotRunningProgress, plotLikelihood
 from parameter_estimation.save import savePosterior
+from parameter_estimation.prior import prior_setting_default, prior_setting_1, prior_setting_2
 
 
 
@@ -29,15 +30,11 @@ def runSingleEventPE(output_dir, event, gps, duration, post_trigger_duration, Mc
     #################### Fetching the Data ####################
     total_time_start = time.time()
 
-    # first, fetch a 4s segment centered on GW150914
-   
-    
     post_trigger_duration = duration // 2
     start_pad = duration - post_trigger_duration
     end_pad = post_trigger_duration
     fmin = 20.0
     fmax = 1024.0
-
     
     detectors = []
 
@@ -53,83 +50,29 @@ def runSingleEventPE(output_dir, event, gps, duration, post_trigger_duration, Mc
         V1.load_data(gps, start_pad, end_pad, fmin, fmax, psd_pad=duration*4, tukey_alpha=0.2)
         detectors.append(V1)
         
-    waveform = RippleIMRPhenomPv2(f_ref=20)
+    # waveform = RippleIMRPhenomPv2(f_ref=20)
+    waveform =  RippleIMRPhenomPv2_Transform(f_ref=20)
 
     ###########################################
     ########## Set up priors ##################
     ###########################################
-    Mc_prior = Unconstrained_Uniform(Mc_prior[0], Mc_prior[1], naming=["M_c"])
-    q_prior = Unconstrained_Uniform(
-        0.125,
-        1.0,
-        naming=["q"],
-        transforms={"q": ("eta", lambda params: params["q"] / (1 + params["q"]) ** 2)},
-    )
-    s1_prior = Sphere(naming="s1")
-    s2_prior = Sphere(naming="s2")
-    dL_prior = Unconstrained_Uniform(100.0, 10000.0, naming=["d_L"])
-    t_c_prior = Unconstrained_Uniform(-0.5, 0.5, naming=["t_c"])
-    phase_c_prior = Unconstrained_Uniform(0.0, 2 * jnp.pi, naming=["phase_c"])
-    cos_iota_prior = Unconstrained_Uniform(
-        -1.0,
-        1.0,
-        naming=["cos_iota"],
-        transforms={
-            "cos_iota": (
-                "iota",
-                lambda params: jnp.arccos(
-                    jnp.arcsin(jnp.sin(params["cos_iota"] / 2 * jnp.pi)) * 2 / jnp.pi
-                ),
-            )
-        },
-    )
-    psi_prior = Unconstrained_Uniform(0.0, jnp.pi, naming=["psi"])
-    ra_prior = Unconstrained_Uniform(0.0, 2 * jnp.pi, naming=["ra"])
-    sin_dec_prior = Unconstrained_Uniform(
-        -1.0,
-        1.0,
-        naming=["sin_dec"],
-        transforms={
-            "sin_dec": (
-                "dec",
-                lambda params: jnp.arcsin(
-                    jnp.arcsin(jnp.sin(params["sin_dec"] / 2 * jnp.pi)) * 2 / jnp.pi
-                ),
-            )
-        },
-    )
-
-    prior = Composite(
-        [
-            Mc_prior,
-            q_prior,
-            s1_prior,
-            s2_prior,
-            dL_prior,
-            t_c_prior,
-            phase_c_prior,
-            cos_iota_prior,
-            psi_prior,
-            ra_prior,
-            sin_dec_prior,
-        ],
-    )
+    prior = prior_setting_1(Mc_prior)
 
     epsilon = 1e-3
     bounds = jnp.array(
         [
-            [1.0, 120.0],
+            [1.0, 150.0],
             [0.125, 1.0],
-            [0, jnp.pi],
-            [0, 2 * jnp.pi],
-            [0.0, 1.0],
-            [0, jnp.pi],
-            [0, 2 * jnp.pi],
-            [0.0, 1.0],
-            [0.0, 10000],
-            [-0.05, 0.05],
-            [0.0, 2 * jnp.pi],
-            [-1.0, 1.0],
+            [0.0, 0.99], #a1
+            [0.0, 0.99], #a2
+            [0, 2 * jnp.pi], #phi_12
+            [0, 2 * jnp.pi], #phi_jl
+            [0.0, 1.0], #sin_theta_jn
+            [0.0, 1.0], #sin_tilt_1
+            [0.0, 1.0], #sin_tilt_2
+            [0.0, 10000], #dL
+            [-0.5, 0.5], #tc
+            [0.0, 2 * jnp.pi], #phase_c
             [0.0, jnp.pi],
             [0.0, 2 * jnp.pi],
             [-1.0, 1.0],
@@ -140,7 +83,6 @@ def runSingleEventPE(output_dir, event, gps, duration, post_trigger_duration, Mc
         likelihood = HeterodynedTransientLikelihoodFD(detectors, prior=prior, bounds=bounds, waveform=waveform, trigger_time=gps, duration=duration, post_trigger_duration=post_trigger_duration,n_bins=1000)
     else:
         likelihood = TransientLikelihoodFD(detectors, waveform=waveform, trigger_time=gps, duration=duration, post_trigger_duration=post_trigger_duration)
-
 
     mass_matrix = jnp.eye(prior.n_dim)
     mass_matrix = mass_matrix.at[1, 1].set(1e-3)
@@ -155,7 +97,7 @@ def runSingleEventPE(output_dir, event, gps, duration, post_trigger_duration, Mc
     total_epochs = n_epochs * n_loop_training
     start = total_epochs//10
     learning_rate = optax.polynomial_schedule(
-        1e-3, 1e-4, 400, total_epochs - start, transition_begin=start
+        1e-3, 1e-4, 4, total_epochs - start, transition_begin=start
     )
 
     jim = Jim(
@@ -181,9 +123,7 @@ def runSingleEventPE(output_dir, event, gps, duration, post_trigger_duration, Mc
     )
 
     import numpy as np
-
     jim.sample(jax.random.PRNGKey(42))
-
 
     #################### Output ####################
     result = jim.get_samples()
@@ -210,9 +150,8 @@ if __name__ == "__main__":
     waveform: waveform model to use
     heterodyned: whether to use heterodyned likelihood
     """
-
+    
     parser = argparse.ArgumentParser()
-
     parser.add_argument('--output_dir', type=str, default="output", help='Your name')
     parser.add_argument('--event', type=str, default="GW191216_213338", help='Your name')
     parser.add_argument('--gps', type=float, default=1260567236.4, help='Your name')
