@@ -19,7 +19,7 @@ import argparse
 from parameter_estimation.utilities import mkdir
 from parameter_estimation.plotting import plotPosterior, plotRunningProgress, plotLikelihood
 from parameter_estimation.save import savePosterior
-from parameter_estimation.prior import prior_setting_1, prior_setting_2
+from parameter_estimation.prior import prior_setting_default, prior_setting_1, prior_setting_2
 
 
 
@@ -56,7 +56,7 @@ def runSingleEventPE(output_dir, event, gps, duration, post_trigger_duration, Mc
     ###########################################
     ########## Set up priors ##################
     ###########################################
-    prior = prior_setting_2(Mc_prior)
+    prior = prior_setting_1(Mc_prior)
 
     epsilon = 1e-3
     bounds = jnp.array(
