@@ -97,7 +97,7 @@ def runSingleEventPE(output_dir, event, gps, duration, post_trigger_duration, Mc
     total_epochs = n_epochs * n_loop_training
     start = total_epochs//10
     learning_rate = optax.polynomial_schedule(
-        1e-3, 1e-4, 400, total_epochs - start, transition_begin=start
+        1e-3, 1e-4, 4, total_epochs - start, transition_begin=start
     )
 
     jim = Jim(
