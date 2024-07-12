@@ -5,9 +5,9 @@ import jax
 import matplotlib.pyplot as plt
 import h5py
 
-from .utilities import mkdir, spin_to_spin
+from .utilities import mkdir
 from .fetch import getBilbyPosterior
-from .save import getPosterior, convertPosteriorParams
+from .save import getPosterior
 
 
 ############################## Functions for Plotting Various Graphs ##############################
@@ -89,12 +89,7 @@ def plotLikelihood(summary, event, output_dir="output"):
     plt.savefig(output_dir + "/likelihood/"+event+".jpeg")
     
     
-def plotCompare(event_name, 
-    params=["M_c", "eta", "s1_x", "s1_y", "s1_z", "s2_x", "s2_y", "s2_z", "d_L", "phase_c", "iota", "psi", "ra", "dec"], 
-    output_dir="compare_plot", 
-    result_dir="output", 
-    result2_dir=None
-):
+def plotCompare(event_name, params, output_dir="compare_plot", result_dir="output"):
     """
     To compare the posterior samples from Jim and Bilby
     
@@ -102,18 +97,9 @@ def plotCompare(event_name,
     """
     jim_params = []
     bilby_params = []
-    jim2_params = []
     for param in params:
         jim_params.append(getPosterior(event_name, param, result_dir))
         bilby_params.append(getBilbyPosterior(event_name, param))
-    
-    if result2_dir != None:
-        spin_params = ['M_c', 'eta', 'theta_jn', 'phi_jl', 'tilt_1', 'tilt_2', 'a_1', 'a_2', 'phi_12', 'd_L', 'phase_c', 'ra', 'dec', 'psi']
-        for param in spin_params:
-            jim2_params.append(getPosterior(event_name, param, result2_dir))
-        iota, s1x, s1y, s1z, s2x, s2y, s2z = spin_to_spin(jim2_params[2], jim2_params[3], jim2_params[4], jim2_params[5], jim2_params[6], jim2_params[7], jim2_params[8], jim2_params[0], jim2_params[1], 20, jim2_params[13])
-        jim2_params = [jim2_params[0], jim2_params[1], s1x, s1y, s1z, s2x, s2y, s2z, jim2_params[9], jim2_params[10], iota, jim2_params[13], jim2_params[11], jim2_params[12]]
-                
         
     jim_params = np.array(jim_params).T
     sample_point_filter = np.random.choice(jim_params.shape[0], size=5000, replace=True)
@@ -122,17 +108,10 @@ def plotCompare(event_name,
     bilby_params = np.array(bilby_params).T
     sample_point_filter = np.random.choice(bilby_params.shape[0], size=5000, replace=True)
     bilby_params = bilby_params[sample_point_filter]
-    
-    if result2_dir != None:
-        jim2_params = np.array(jim2_params).T
-        sample_point_filter = np.random.choice(jim2_params.shape[0], size=5000, replace=True)
-        jim2_params = jim2_params[sample_point_filter]
-        
 
-    fig = corner.corner(jim_params, labels=params, plot_datapoints=False, title_quantiles=[0.16, 0.5, 0.84], show_titles=True, title_fmt='g', use_math_text=True, color = 'pink')
-    corner.corner(bilby_params, labels=params, plot_datapoints=False, title_quantiles=[0.16, 0.5, 0.84], show_titles=True, title_fmt='g', use_math_text=True, color = 'green', fig=fig)
-    if result2_dir != None:
-        corner.corner(jim2_params, labels=params, plot_datapoints=False, title_quantiles=[0.16, 0.5, 0.84], show_titles=True, title_fmt='g', use_math_text=True, color = 'lightsteelblue', fig=fig)
+    fig = corner.corner(jim_params, labels=params, plot_datapoints=False, title_quantiles=[0.16, 0.5, 0.84], show_titles=True, title_fmt='g', use_math_text=True, color = 'red')
+    corner.corner(bilby_params, labels=params, plot_datapoints=False, title_quantiles=[0.16, 0.5, 0.84], show_titles=True, title_fmt='g', use_math_text=True, color = 'blue', fig=fig)
+
     plt.savefig(output_dir+"/"+event_name+".jpeg")
     plt.close()
     
@@ -141,12 +120,12 @@ def plotIntrinsicParamsComparison(event_name, output_dir="compare_plot", result_
     """
     To compare the intrinsic parameters of the posterior samples from Jim and Bilby
     """
-    # plotCompare(event_name, ["M_c", "eta", "s1_x", "s1_y", "s1_z", "s2_x", "s2_y", "s2_z"], output_dir, result_dir)
-    plotCompare(event_name, ["M_c", "eta", "a_1", "a_2", "phi_12", "phi_jl", "tilt_1", "tilt_2"], output_dir)
+    plotCompare(event_name, ["M_c", "eta", "s1_x", "s1_y", "s1_z", "s2_x", "s2_y", "s2_z"], output_dir, result_dir)
+    # plotCompare(event_name, ["M_c", "eta", "a_1", "a_2", "phi_12", "phi_jl", "tilt_1", "tilt_2"], output_dir)
 
 def plotExtrinsicParamsComparison(event_name, output_dir="compare_plot", result_dir="output"):
     """
     To compare the extrinsic parameters of the posterior samples from Jim and Bilby
     """
-    # plotCompare(event_name, ["d_L", "phase_c", "iota", "psi", "ra", "dec"], output_dir, result_dir)
-    plotCompare(event_name, ["d_L", "phase_c", "theta_jn", "psi", "ra", "dec"], output_dir)
+    plotCompare(event_name, ["d_L", "phase_c", "iota", "psi", "ra", "dec"], output_dir, result_dir)
+    # plotCompare(event_name, ["d_L", "phase_c", "theta_jn", "psi", "ra", "dec"], output_dir)

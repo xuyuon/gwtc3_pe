@@ -6,7 +6,7 @@ import json
 from gwosc.datasets import find_datasets, event_gps
 from gwosc import datasets
 
-from .utilities import mkdir, JSdivergence, spin_to_spin
+from .utilities import mkdir, JSdivergence
 from .fetch import fetch_gps, fetch_detectors, fetch_catalog
 
 ############################## Save Posterior Samples ##############################
@@ -32,13 +32,6 @@ def getPosterior(event, param, output_dir="output"):
     with h5py.File(output_dir + '/posterior_samples/' + event + '.h5', 'r') as f:
         return np.array(f['posterior/'+param]).reshape(-1)
     
-
-def isParamInPosterior(event, params, output_dir="output"):
-    """
-    Check if a list of parameters is in the posterior sample points
-    """
-    return NotImplementedError
-        
 
 ############################## Save Summary of PE Results ##############################
 def saveSummary(events):
