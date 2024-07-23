@@ -7,7 +7,7 @@ import json
 
 gwtc3 = datasets.find_datasets(type='events', catalog='GWTC-3-confident')
 
-output_dir = 'output_epoch_40'
+output_dir = 'output_spin'
 
 file = open('configs.json')
 configs = json.load(file)['configs']
