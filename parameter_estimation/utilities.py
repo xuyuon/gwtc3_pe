@@ -15,6 +15,9 @@ def mkdir(path):
 
 
 #################### GW Functions ####################
+def eta_to_q(eta):
+    temp = (1 / eta / 2 - 1)
+    return temp - (temp ** 2 - 1) ** 0.5
 
 def Mc_q_to_m1m2(Mc, q):
     """
