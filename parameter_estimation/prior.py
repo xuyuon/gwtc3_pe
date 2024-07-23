@@ -124,7 +124,28 @@ def prior_setting_1(M_c):
             sin_dec_prior,
         ],
     )
-    return prior
+    
+    epsilon = 1e-3
+    bounds = jnp.array(
+        [
+            [1.0, 150.0],
+            [0.125, 1.0],
+            [0, jnp.pi],
+            [0, 2 * jnp.pi],
+            [0.0, 1.0],
+            [0, jnp.pi],
+            [0, 2 * jnp.pi],
+            [0.0, 1.0],
+            [0.0, 10000], #dL
+            [-0.05, 0.05], #tc
+            [0.0, 2 * jnp.pi], #phase_c
+            [-1.0, 1.0],
+            [0.0, jnp.pi],
+            [0.0, 2 * jnp.pi],
+            [-1.0, 1.0],
+        ]
+    ) + jnp.array([[epsilon, -epsilon]])
+    return prior, bounds
 
 def prior_setting_2(M_c):
     Mc_prior = UniformInComponentChirpMass(M_c[0], M_c[1], naming=["M_c"])
@@ -215,7 +236,28 @@ def prior_setting_2(M_c):
             sin_dec_prior,
         ],
     )
-    return prior
+    
+    epsilon = 1e-3
+    bounds = jnp.array(
+        [
+            [1.0, 150.0],
+            [0.125, 1.0],
+            [0.0, 0.99], #a1
+            [0.0, 0.99], #a2
+            [0, 2 * jnp.pi], #phi_12
+            [0, 2 * jnp.pi], #phi_jl
+            [0.0, 1.0], #sin_theta_jn
+            [0.0, 1.0], #sin_tilt_1
+            [0.0, 1.0], #sin_tilt_2
+            [0.0, 10000], #dL
+            [-0.5, 0.5], #tc
+            [0.0, 2 * jnp.pi], #phase_c
+            [0.0, jnp.pi],
+            [0.0, 2 * jnp.pi],
+            [-1.0, 1.0],
+        ]
+    ) + jnp.array([[epsilon, -epsilon]])
+    return prior, bounds
 
 def testing(composite_prior):
     import bilby
