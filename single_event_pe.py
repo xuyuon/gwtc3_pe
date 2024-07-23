@@ -21,10 +21,29 @@ from parameter_estimation.plotting import plotPosterior, plotRunningProgress, pl
 from parameter_estimation.save import savePosterior
 from parameter_estimation.prior import prior_setting_default, prior_setting_1, prior_setting_2
 
+output_dir="output"
+event="GW191204-testing"
+gps = 1259492747.5
+duration = 16
+Mc_prior = [3.0, 30.0]
+ifos = ["H1", "L1"]
+epochs = 40
+seed =42
 
-
-
-def runSingleEventPE(output_dir, event, gps, duration, post_trigger_duration, Mc_prior, ifos, waveform, heterodyned, epochs=40):
+def runSingleEventPE(output_dir, 
+                     event, 
+                     gps, 
+                     duration, 
+                     post_trigger_duration, 
+                     Mc_prior, 
+                     ifos, 
+                     waveform, 
+                     heterodyned, 
+                     epochs=40, 
+                     seed=42, 
+                     rate=None,
+                     global_step=1000
+    ):
     jax.config.update("jax_enable_x64", True)
     
     #################### Fetching the Data ####################
@@ -56,28 +75,8 @@ def runSingleEventPE(output_dir, event, gps, duration, post_trigger_duration, Mc
     ###########################################
     ########## Set up priors ##################
     ###########################################
-    prior = prior_setting_1(Mc_prior)
-
-    epsilon = 1e-3
-    bounds = jnp.array(
-        [
-            [1.0, 150.0],
-            [0.125, 1.0],
-            [0.0, 0.99], #a1
-            [0.0, 0.99], #a2
-            [0, 2 * jnp.pi], #phi_12
-            [0, 2 * jnp.pi], #phi_jl
-            [0.0, 1.0], #sin_theta_jn
-            [0.0, 1.0], #sin_tilt_1
-            [0.0, 1.0], #sin_tilt_2
-            [0.0, 10000], #dL
-            [-0.5, 0.5], #tc
-            [0.0, 2 * jnp.pi], #phase_c
-            [0.0, jnp.pi],
-            [0.0, 2 * jnp.pi],
-            [-1.0, 1.0],
-        ]
-    ) + jnp.array([[epsilon, -epsilon]])
+    # prior, bounds = prior_setting_1(Mc_prior)
+    prior, bounds = prior_setting_2(Mc_prior)
 
     if heterodyned:
         likelihood = HeterodynedTransientLikelihoodFD(detectors, prior=prior, bounds=bounds, waveform=waveform, trigger_time=gps, duration=duration, post_trigger_duration=post_trigger_duration,n_bins=1000)
@@ -96,9 +95,12 @@ def runSingleEventPE(output_dir, event, gps, duration, post_trigger_duration, Mc
     n_loop_training = 100
     total_epochs = n_epochs * n_loop_training
     start = total_epochs//10
-    learning_rate = optax.polynomial_schedule(
-        1e-3, 1e-4, 4, total_epochs - start, transition_begin=start
-    )
+    if rate == None:
+        learning_rate = optax.polynomial_schedule(
+            1e-3, 1e-4, 4, total_epochs - start, transition_begin=start
+        )
+    else:
+        learning_rate = rate
 
     jim = Jim(
         likelihood,
@@ -106,7 +108,7 @@ def runSingleEventPE(output_dir, event, gps, duration, post_trigger_duration, Mc
         n_loop_training=n_loop_training,
         n_loop_production=20,
         n_local_steps=10,
-        n_global_steps=1000,
+        n_global_steps=int(global_step),
         n_chains=500,
         n_epochs=n_epochs,
         learning_rate=learning_rate,
@@ -123,14 +125,16 @@ def runSingleEventPE(output_dir, event, gps, duration, post_trigger_duration, Mc
     )
 
     import numpy as np
-    jim.sample(jax.random.PRNGKey(42))
+    jim.sample(jax.random.PRNGKey(int(seed)))
 
     #################### Output ####################
     result = jim.get_samples()
+    print(result)
     summary = jim.Sampler.get_sampler_state(training=True)
 
+    # labels = ["M_c", "eta", "s1x", "s1y", "s1z", "s2x", "s2y", "s2z", "dL", "t_c", "phase_c", "iota", "psi", "ra", "dec"]
     labels = ["M_c", "eta", "a1", "a2", "phi_12", "phi_jl", "theta_jn", "tilt_1", "tilt_2", "d_L", "t_c", "phase_c", "psi", "ra", "dec"]
-    
+
     mkdir(output_dir)
     plotPosterior(result, event, output_dir, labels=labels)
     savePosterior(result, event, output_dir)
@@ -161,6 +165,9 @@ if __name__ == "__main__":
     parser.add_argument('--ifos', type=str, nargs='+', help='ifos', default=["H1", "V1"])
     parser.add_argument('--waveform', type=str, default="RippleIMRPhenomPv2", help='Your name')
     parser.add_argument('--heterodyned', type=bool, default=False, help='Your name')
+    parser.add_argument('--seed', type=float, default=42, help='Your name')
+    parser.add_argument('--rate', type=float, default=None, help='Your name')
+    parser.add_argument('--global_step', type=float, default=1000, help='Your name')
     args = parser.parse_args()
     
     runSingleEventPE(
@@ -172,5 +179,8 @@ if __name__ == "__main__":
         Mc_prior=args.Mc_prior, 
         ifos=args.ifos,
         waveform=args.waveform,
-        heterodyned=args.heterodyned
-        )
+        heterodyned=args.heterodyned,
+        seed=args.seed,
+        rate=args.rate,
+        global_step=args.global_step
+    )
